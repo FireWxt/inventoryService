@@ -7,6 +7,7 @@ export const openapiSpec = {
       "API de gestion des événements et des réservations de places.",
   },
   servers: [{ url: "http://localhost:3001" }],
+  security: [{ HostToken: [] }],
   paths: {
     "/events": {
       get: {
@@ -24,6 +25,7 @@ export const openapiSpec = {
               },
             },
           },
+          "401": { description: "Jeton inter-services manquant ou invalide" },
         },
       },
     },
@@ -42,6 +44,7 @@ export const openapiSpec = {
             },
           },
           "400": { description: "Identifiant invalide" },
+          "401": { description: "Jeton inter-services manquant ou invalide" },
           "404": { description: "Événement non trouvé" },
         },
       },
@@ -61,6 +64,7 @@ export const openapiSpec = {
             },
           },
           "400": { description: "Identifiant invalide" },
+          "401": { description: "Jeton inter-services manquant ou invalide" },
           "404": { description: "Événement non trouvé" },
           "409": { description: "Plus de places disponibles" },
         },
@@ -81,6 +85,7 @@ export const openapiSpec = {
             },
           },
           "400": { description: "Identifiant invalide" },
+          "401": { description: "Jeton inter-services manquant ou invalide" },
           "404": { description: "Réservation non trouvée" },
           "409": { description: "Réservation non pending" },
         },
@@ -88,18 +93,31 @@ export const openapiSpec = {
     },
     "/reservations/{id}": {
       delete: {
-        summary: "Libérer une place",
+        summary: "Annuler une réservation temporaire / libérer une place",
         tags: ["Reservations"],
         parameters: [{ $ref: "#/components/parameters/ReservationId" }],
         responses: {
           "204": { description: "Place libérée" },
           "400": { description: "Identifiant invalide" },
+          "401": { description: "Jeton inter-services manquant ou invalide" },
           "404": { description: "Réservation non trouvée" },
+          "409": {
+            description:
+              "Seule une réservation au statut pending peut être libérée",
+          },
         },
       },
     },
   },
   components: {
+    securitySchemes: {
+      HostToken: {
+        type: "apiKey",
+        in: "header",
+        name: "X-Host-Token",
+        description: "Jeton partagé entre les microservices",
+      },
+    },
     parameters: {
       EventId: {
         name: "id",

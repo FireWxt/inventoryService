@@ -1,5 +1,6 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
+import { requireHostToken } from "./auth.js";
 import { events } from "./models/eventModel.js";
 import { reservations, createReservation } from "./models/reservationModel.js";
 import { openapiSpec } from "./openapi.js";
@@ -11,6 +12,8 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
+
+app.use(requireHostToken);
 
 // Consultation des événements
 app.get("/events", (_req, res) => {
@@ -82,6 +85,12 @@ app.delete("/reservations/:id", (req, res) => {
   const index = reservations.findIndex((r) => r.id === id);
   if (index === -1) {
     return res.status(404).json({ error: "Reservation not found" });
+  }
+
+  if (reservations[index]!.status !== "pending") {
+    return res
+      .status(409)
+      .json({ error: "Only a pending reservation can be released" });
   }
 
   const [reservation] = reservations.splice(index, 1);
