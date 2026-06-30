@@ -1,12 +1,16 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 import { events } from "./models/eventModel.js";
 import { reservations, createReservation } from "./models/reservationModel.js";
+import { openapiSpec } from "./openapi.js";
 
 const app = express();
 
 app.get("/", (_req, res) => {
   res.send("Inventory Service");
 });
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 // Consultation des événements
 app.get("/events", (_req, res) => {
